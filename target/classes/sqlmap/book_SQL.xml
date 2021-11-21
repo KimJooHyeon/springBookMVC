@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EM" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="spring.mvc.kjh.mapper.BookMapper">
+	<!-- 
+		현재 사내 프레임워크 권장사항은 select 시에는 Map으로, 나머지 CUD 작업은 VO 사용이다. 
+		select 하는 경우는 보통 2개 이상의 테이블을 조인하여 조회하는 경우가 많아 VO로는 표현이 복잡하기 때문
+	 -->
+	<insert id="insert" parameterType="hashMap">
+		<selectKey order="BEFORE" resultType="integer" keyProperty="bookId">
+			SELECT NVL(MAX(BOOK_ID),0)+1 FROM BOOK
+		</selectKey>
+		INSERT INTO BOOK(BOOK_ID, TITLE, CATEGORY, PRICE, INSERT_DATE)
+		VALUES(#{bookId}, #{title}, #{category}, #{price}, SYSDATE)
+	</insert>
+	
+	<select id="detail" parameterType="int" resultType="bookVo">
+		SELECT BOOK_ID, TITLE, CATEGORY, PRICE, INSERT_DATE
+		FROM BOOK
+		WHERE BOOK_ID = #{bookId}
+		ORDER BY BOOK_ID DESC
+	</select>
+	
+	<select id="list" resultType="hashMap">
+		SELECT BOOK_ID, TITLE, CATEGORY, PRICE, INSERT_DATE
+		FROM BOOK
+		ORDER BY BOOK_ID DESC
+	</select>
+	
+	<update id="update" parameterType="bookVo">
+		UPDATE BOOK
+		SET TITLE = #{title}, CATEGORY = #{category}, PRICE = #{price}
+		WHERE BOOK_ID = #{bookId}
+	</update>
+	
+	<delete id="delete" parameterType="hashMap">
+		DELETE FROM BOOK
+		WHERE BOOK_ID = #{bookId}
+	</delete>
+	
+	<select id="search" parameterType="hashMap" resultType="hashMap">
+		SELECT BOOK_ID, TITLE, CATEGORY, PRICE, INSERT_DATE
+		FROM BOOK
+		WHERE 1 = 1
+		<if test="searchOption != null and !searchOption.equals('')">
+			<choose>
+				<when test="searchOption.equals('title')">
+					AND TITLE LIKE '%' || #{keyword} || '%'
+				</when>
+				<when test="searchOption.equals('category')">
+					AND CATEGORY LIKE '%' || #{keyword} || '%'
+				</when>
+				<otherwise>
+					AND (TITLE LIKE '%' || #{keyword} || '%' OR CATEGORY LIKE '%' || #{keyword} || '%')
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY BOOK_ID DESC
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
